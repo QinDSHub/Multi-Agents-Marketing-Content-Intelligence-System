@@ -1,6 +1,10 @@
-### Project Overview: Lightweight Automated Content Generation Tool ###
+
+📂 Project Overview
 
 This tool was designed as an applied Generative AI tool that were used in our school project in 2nd semester. This study was conducted in response to Expleo’s proposed research topic and adopted a structured analytical approach to progressively define the research objectives and tool development goals. The analysis workflows covered industry trends over the past year, current market dynamics, and competitor positioning, from which actionable insights were derived.
+
+________________________________________
+📂 Define core business objectives
 
 This tool can automatically produce structured content ideas tailored to three specific core business objectives:
 
@@ -10,6 +14,8 @@ This tool can automatically produce structured content ideas tailored to three s
 
 ☑ Reaching and engaging potential clients
 
+________________________________________
+📂 Prompt Template
 
 Each market content idea was designed to be toileted for below prompt template includes: 
 
@@ -29,7 +35,8 @@ Each market content idea was designed to be toileted for below prompt template i
 
 Main libraries used: OpenAI, Langchain, Jinja2, Pydantic, prompt template, chain functions. It demonstrates a full LLM-powered market content strategy pipeline that you can run and experiment with.
 
-### Future Directions ###
+________________________________________
+📂 Future Directions
 This MVP lays the foundation for LLM-powered content strategy generation, but there are several exciting avenues for further enhancement:
 
 ☑ Agent-Oriented Workflow Introduce multiple reasoning and action steps, allowing the system to autonomously plan, research, and iterate on content ideas rather than relying on a single LLM call.
