@@ -102,3 +102,7 @@ If you set `page_id` and `fb_access_token`, the distributor node can post after 
 ## Safety
 
 This project includes a manual confirmation step before publishing to social media. Ensure your access tokens and page IDs are stored securely.
+
+## GenAI Assistance Disclosure
+
+This multi-agent automation using LangChain and LangGraph was developed by me and refined with the assistance of GPT-5.2-Codex, which contributed to code optimization, language polishing, and prompt iteration. All system architecture, implementation, and final outputs were independently created and validated by the author, who assumes full responsibility for the project’s academic integrity.
