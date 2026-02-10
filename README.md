@@ -79,7 +79,6 @@ Together, these design choices help:
 
 ## GenAI Assistance Disclosure
 
-This multi-agent automation system was designed and implemented by the author using LangChain and LangGraph.  
-GPT-5.2-Codex was used exclusively for code optimization, language refinement, and prompt iteration support.
+This multi-agent automation system was designed and implemented by the author using LangChain and LangGraph. GPT-5.2-Codex was used exclusively for code optimization, language refinement, and prompt iteration support.
 
 All system architecture, implementation decisions, and final outputs were independently developed and validated by the author, who assumes full responsibility for the project’s integrity and correctness.
