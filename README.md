@@ -108,17 +108,17 @@ Version 3.0 prioritizes architectural clarity and experimental reproducibility. 
 ## Implementation Details
 ### **Technology Stack**
 
-Python 3.12.7
+- Python 3.12.7
 
-chromadb 1.4.1
+- chromadb 1.4.1
 
-langchain 1.2.8
+- langchain 1.2.8
 
-langchain-openai 1.1.7
+- langchain-openai 1.1.7
 
-langgraph 1.0.7
+- langgraph 1.0.7
 
-openai 2.17.0
+- openai 2.17.0
 
 ---
 
