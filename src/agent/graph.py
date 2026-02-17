@@ -1,16 +1,3 @@
-"""
-Multi-Agent Marketing Intelligence System using LangGraph
-
-This graph orchestrates a pipeline of 7 specialized agents:
-1. Search Agent - Finds relevant news articles via Google Search
-2. Document Loaders - Loads content from web and local PDF sources
-3. RAG Agent - Creates vector store and retrieves relevant content
-4. Insights Extraction - Synthesizes strategic insights
-5. Content Generation - Creates marketing content
-6. Auto Publishing - Distributes to Facebook
-7. Analytics - Analyzes post performance
-"""
-
 from typing import TypedDict, Optional, List, Annotated
 from langgraph.graph import StateGraph, END
 from langgraph.graph.state import CompiledStateGraph
@@ -61,53 +48,49 @@ class MarketingState(TypedDict):
 
 
 def search_node(state: MarketingState) -> MarketingState:
-    """Node 1: Execute Google Search for news articles"""
-    print(f"🔍 Executing search for query: {state['query']}")
+    """Node 1: Use Google PersAPI to find more professional news or articles related to the query"""
     try:
         results = google_search(state["query"])
         state["search_results"] = results
-        print(f"✅ Found {len(results.results)} search results")
+        print(f"search results length: {len(results.results)}")
     except Exception as e:
         error_msg = f"Search node error: {str(e)}"
-        print(f"❌ {error_msg}")
+        print(f"there is some error: {error_msg}")
         state["errors"] = state.get("errors", []) + [error_msg]
     return state
 
 
 def web_loader_node(state: MarketingState) -> MarketingState:
-    """Node 2a: Load and clean content from web search results"""
-    print("🌐 Loading content from web sources...")
+    """Node 2a: Load text content from links of web search results"""
     try:
         if state.get("search_results") and state["search_results"].results:
             docs = text_loader(state["search_results"])
             state["web_documents"] = docs
-            print(f"✅ Loaded {len(docs.results)} web documents")
+            print(f"web documents length: {len(docs.results)}")
         else:
             state["web_documents"] = AllSearchDocResults()
-            print("⚠️ No search results to load")
+            print("No search results to load, pls double check the search node")
     except Exception as e:
         error_msg = f"Web loader error: {str(e)}"
-        print(f"❌ {error_msg}")
+        print(f"there is some error: {error_msg}")
         state["errors"] = state.get("errors", []) + [error_msg]
         state["web_documents"] = AllSearchDocResults()
     return state
 
 
 def local_loader_node(state: MarketingState) -> MarketingState:
-    """Node 2b: Load content from local PDF documents"""
+    """Node 2b: Load content from local PDF professional documents, such as yearly reports"""
     if state.get("skip_local_docs", False) or not state.get("local_pdf_path"):
-        print("⏭️ Skipping local document loading")
         state["local_documents"] = AllLocalDocResults()
         return state
     
-    print(f"📄 Loading local PDF: {state['local_pdf_path']}")
     try:
         docs = extract_text_from_pdf(state["local_pdf_path"])
         state["local_documents"] = docs
-        print(f"✅ Loaded {len(docs.results)} local documents")
+        print(f"local documents length: {len(docs.results)} ")
     except Exception as e:
         error_msg = f"Local loader error: {str(e)}"
-        print(f"❌ {error_msg}")
+        print(f"there is some error: {error_msg}")
         state["errors"] = state.get("errors", []) + [error_msg]
         state["local_documents"] = AllLocalDocResults()
     return state
@@ -115,7 +98,6 @@ def local_loader_node(state: MarketingState) -> MarketingState:
 
 def rag_node(state: MarketingState) -> MarketingState:
     """Node 3: Create vector store and retrieve relevant content"""
-    print("🗄️ Building vector store and retrieving relevant content...")
     try:
         web_docs = state.get("web_documents") or AllSearchDocResults()
         local_docs = state.get("local_documents") or AllLocalDocResults()
@@ -123,48 +105,45 @@ def rag_node(state: MarketingState) -> MarketingState:
         
         rag_results = reduce_agent(web_docs, local_docs, db_path)
         state["rag_results"] = rag_results
-        print(f"✅ Retrieved {len(rag_results.content)} relevant chunks")
+        print(f"rag results length: {len(rag_results.content)}")
     except Exception as e:
         error_msg = f"RAG node error: {str(e)}"
-        print(f"❌ {error_msg}")
+        print(f"there is some error: {error_msg}")
         state["errors"] = state.get("errors", []) + [error_msg]
-        # Create empty result to allow pipeline to continue
         state["rag_results"] = RagResult(content=[])
     return state
 
 
 def insights_node(state: MarketingState) -> MarketingState:
     """Node 4: Extract and synthesize strategic insights"""
-    print("💡 Extracting strategic insights...")
     try:
         if state.get("rag_results") and state["rag_results"].content:
             insights = insights_agent(state["rag_results"])
             state["strategic_insights"] = insights
-            print(f"✅ Generated {len(insights.insights)} strategic insights")
+            print(f"strategic insights length: {len(insights.insights)}")
         else:
-            print("⚠️ No RAG results available for insights extraction")
+            print("No RAG results available for insights extraction")
             state["strategic_insights"] = None
     except Exception as e:
         error_msg = f"Insights node error: {str(e)}"
-        print(f"❌ {error_msg}")
+        print(f"there is some error: {error_msg}")
         state["errors"] = state.get("errors", []) + [error_msg]
     return state
 
 
 def content_generation_node(state: MarketingState) -> MarketingState:
     """Node 5: Generate marketing content"""
-    print("✍️ Generating marketing content...")
     try:
         if state.get("strategic_insights"):
             contents = marketing_content_agent(state["strategic_insights"])
             state["marketing_contents"] = contents
-            print(f"✅ Generated {len(contents.contents)} marketing pieces")
+            print(f"marketing contents length: {len(contents.contents)}")
         else:
-            print("⚠️ No insights available for content generation")
+            print("No insights available for content generation")
             state["marketing_contents"] = None
     except Exception as e:
         error_msg = f"Content generation error: {str(e)}"
-        print(f"❌ {error_msg}")
+        print(f"there is some error: {error_msg}")
         state["errors"] = state.get("errors", []) + [error_msg]
     return state
 
@@ -172,17 +151,16 @@ def content_generation_node(state: MarketingState) -> MarketingState:
 def publishing_node(state: MarketingState) -> MarketingState:
     """Node 6: Publish content to Facebook"""
     if state.get("skip_publishing", False):
-        print("⏭️ Skipping content publishing")
+        print("Skipping content publishing")
         return state
     
-    print("📤 Publishing content to Facebook...")
     try:
         if not state.get("marketing_contents"):
-            print("⚠️ No marketing content to publish")
+            print("No marketing content to publish")
             return state
             
         if not state.get("facebook_page_id") or not state.get("facebook_access_token"):
-            print("⚠️ Facebook credentials not provided, skipping publishing")
+            print("Facebook credentials not provided, skipping publishing")
             state["skip_publishing"] = True
             return state
         
@@ -195,28 +173,25 @@ def publishing_node(state: MarketingState) -> MarketingState:
         state["publish_results"] = results
         
         successful = sum(1 for r in results.results if r.status == "success")
-        print(f"✅ Published {successful}/{len(results.results)} posts successfully")
+        print(f"Published {successful}/{len(results.results)} posts successfully")
     except Exception as e:
         error_msg = f"Publishing error: {str(e)}"
-        print(f"❌ {error_msg}")
+        print(f"there is some error: {error_msg}")
         state["errors"] = state.get("errors", []) + [error_msg]
     return state
 
 
 def human_review_node(state: MarketingState) -> MarketingState:
     """Human-in-the-loop: Review and approve/reject content before publishing"""
-    print("\n" + "=" * 60)
-    print("👤 HUMAN REVIEW REQUIRED")
-    print("=" * 60)
+    print("HUMAN REVIEW REQUIRED")
     
     if not state.get("marketing_contents"):
-        print("⚠️ No marketing content available for review")
+        print("No marketing content available for review")
         state["human_approval"] = "rejected"
         return state
     
     # Display content for review
-    print("\n📋 Generated Marketing Content:")
-    print("-" * 60)
+    print("\nGenerated Marketing Content:")
     
     for idx, content in enumerate(state["marketing_contents"].contents, 1):
         print(f"\n[Content #{idx}]")
@@ -226,10 +201,10 @@ def human_review_node(state: MarketingState) -> MarketingState:
         print(f"  Channels: {', '.join(content.distribution_channel)}")
         print(f"  Body: {content.body_text[:200]}...")
         print(f"  CTA: {content.call_to_action}")
-        print("-" * 60)
+        print("-" * 10)
     
     # Request human input
-    print("\n🔍 Please review the content above.")
+    print("\n Please review the content above.")
     print("Options:")
     print("  1. Type 'approve' or 'yes' to publish")
     print("  2. Type 'reject' or 'no' to skip publishing")
@@ -240,20 +215,20 @@ def human_review_node(state: MarketingState) -> MarketingState:
         
         if user_input in ["approve", "approved", "yes", "y"]:
             state["human_approval"] = "approved"
-            print("✅ Content approved for publishing!")
+            print("Content approved for publishing!")
         elif user_input in ["reject", "rejected", "no", "n"]:
             state["human_approval"] = "rejected"
-            print("❌ Content rejected. Publishing will be skipped.")
+            print("Content rejected. Publishing will be skipped.")
         else:
             # Allow for feedback with decision
             if "approve" in user_input or "yes" in user_input:
                 state["human_approval"] = "approved"
                 state["human_feedback"] = user_input
-                print("✅ Content approved with feedback!")
+                print("Content approved with feedback!")
             else:
                 state["human_approval"] = "rejected"
                 state["human_feedback"] = user_input
-                print("❌ Content rejected with feedback.")
+                print("Content rejected with feedback.")
         
         # Optional: Get additional feedback
         if state.get("human_approval") and not state.get("human_feedback"):
@@ -262,11 +237,10 @@ def human_review_node(state: MarketingState) -> MarketingState:
                 state["human_feedback"] = feedback
                 
     except Exception as e:
-        print(f"⚠️ Error getting human input: {e}")
+        print(f"There is some error getting human input: {e}")
         print("Defaulting to rejection for safety.")
         state["human_approval"] = "rejected"
     
-    print("=" * 60 + "\n")
     return state
 
 
@@ -277,50 +251,45 @@ def check_approval(state: MarketingState) -> str:
     if approval_status == "approved":
         return "publishing"
     else:
-        # Skip publishing and analytics if rejected
         return "end"
 
 
 def analytics_node(state: MarketingState) -> MarketingState:
     """Node 7: Analyze post performance"""
     if state.get("skip_analytics", False):
-        print("⏭️ Skipping analytics")
+        print("Skipping analytics")
         return state
     
-    print("📊 Analyzing post performance...")
     try:
         if not state.get("publish_results"):
-            print("⚠️ No published posts to analyze")
+            print("No published posts to analyze")
             return state
         
-        # Extract post IDs from successful publications
         post_ids = [
             r.post_id for r in state["publish_results"].results 
             if r.status == "success" and r.post_id
         ]
         
         if not post_ids:
-            print("⚠️ No successful posts to analyze")
+            print("No successful posts to analyze")
             return state
         
         if not state.get("facebook_access_token"):
-            print("⚠️ Facebook access token not provided, skipping analytics")
+            print("Facebook access token not provided, skipping analytics")
             return state
         
         report = analytics_agent(post_ids, state["facebook_access_token"])
         state["analytics_report"] = report
-        print(f"✅ Generated analytics report for {len(report.summary_report)} posts")
-        print(f"   Average CTR: {report.total_avg_ctr:.2%}")
+        print(f"Generated analytics report for {len(report.summary_report)} posts")
+        print(f"Average CTR: {report.total_avg_ctr:.2%}")
         if report.top_performing_post_id:
-            print(f"   Top post: {report.top_performing_post_id}")
+            print(f"Top post: {report.top_performing_post_id}")
     except Exception as e:
         error_msg = f"Analytics error: {str(e)}"
-        print(f"❌ {error_msg}")
+        print(f"There is some analytics error: {error_msg}")
         state["errors"] = state.get("errors", []) + [error_msg]
     return state
 
-
-# Build the graph
 def create_graph(require_human_approval: bool = False) -> CompiledStateGraph:
     """
     Constructs and compiles the multi-agent marketing intelligence graph.
@@ -333,7 +302,6 @@ def create_graph(require_human_approval: bool = False) -> CompiledStateGraph:
     """
     workflow = StateGraph(MarketingState)
     
-    # Add all nodes
     workflow.add_node("search", search_node)
     workflow.add_node("web_loader", web_loader_node)
     workflow.add_node("local_loader", local_loader_node)
@@ -344,7 +312,6 @@ def create_graph(require_human_approval: bool = False) -> CompiledStateGraph:
     workflow.add_node("publishing", publishing_node)
     workflow.add_node("analytics", analytics_node)
     
-    # Define the flow
     workflow.set_entry_point("search")
     workflow.add_edge("search", "web_loader")
     workflow.add_edge("search", "local_loader")
@@ -353,7 +320,6 @@ def create_graph(require_human_approval: bool = False) -> CompiledStateGraph:
     workflow.add_edge("rag", "insights")
     workflow.add_edge("insights", "content_generation")
     
-    # Human-in-the-loop: Conditional routing after content generation
     if require_human_approval:
         workflow.add_edge("content_generation", "human_review")
         workflow.add_conditional_edges(
@@ -372,12 +338,8 @@ def create_graph(require_human_approval: bool = False) -> CompiledStateGraph:
     
     return workflow.compile()
 
-
-# Create the compiled graph instance (default without human approval)
 graph = create_graph(require_human_approval=False)
 
-
-# Example usage function
 def run_marketing_pipeline(
     query: str,
     local_pdf_path: Optional[str] = None,
@@ -404,7 +366,6 @@ def run_marketing_pipeline(
     Returns:
         Final state containing all results
     """
-    # Create graph with appropriate configuration
     execution_graph = create_graph(require_human_approval=require_human_approval)
     
     initial_state: MarketingState = {
@@ -430,41 +391,40 @@ def run_marketing_pipeline(
         "errors": []
     }
     
-    print("🚀 Starting Multi-Agent Marketing Pipeline")
+    print("Starting Multi-Agent Marketing Pipeline")
     if require_human_approval:
-        print("👤 Human-in-the-loop: ENABLED")
-    print("=" * 60)
+        print("Human-in-the-loop: ENABLED")
+    print("=" * 10)
     
     final_state = execution_graph.invoke(initial_state)
     
-    print("=" * 60)
+    print("=" * 10)
     if final_state.get("errors"):
-        print(f"⚠️ Pipeline completed with {len(final_state['errors'])} error(s)")
+        print(f"Pipeline completed with {len(final_state['errors'])} error(s)")
         for error in final_state["errors"]:
-            print(f"   • {error}")
+            print(f"There is an error:{error}")
     else:
-        print("✅ Pipeline completed successfully!")
+        print("Pipeline completed successfully!")
     
     return final_state
 
 
 if __name__ == "__main__":
-    # Example execution with human-in-the-loop
+
     result = run_marketing_pipeline(
         query="AI marketing trends 2025",
-        # local_pdf_path="./path/to/document.pdf",  # Optional
-        require_human_approval=True,  # Enable human review before publishing
+        # local_pdf_path="./document.pdf",  # from local file with pdf format, optional
+        require_human_approval=True,
         skip_publishing=False,  # Allow publishing if approved
         skip_analytics=True,
-        # facebook_page_id="your_page_id",  # Add credentials when ready
+        # facebook_page_id="your_page_id",  
         # facebook_access_token="your_token"
     )
     
-    # Access results
     if result.get("strategic_insights"):
-        print("\n📋 Strategic Insights:")
+        print("\n Strategic Insights:")
         for insight in result["strategic_insights"].insights:
-            print(f"  • {insight.key_insight_content[:100]}...")
+            print(f"some insight shows: {insight.key_insight_content[:100]}...")
     
     if result.get("marketing_contents"):
-        print(f"\n✍️ Generated {len(result['marketing_contents'].contents)} marketing pieces")
+        print(f"\n Generated {len(result['marketing_contents'].contents)} marketing pieces")
